@@ -13,7 +13,8 @@ Other options:
 -chro {int}         : Chromosome number in the *.gro file to be converted
 -loops {file}       : Text file that contains loop annotations
 -sigma {float}      : Value for the Variance of DNA Distribution
--scale {?}          : Scale of distances in the file
+-scale {string}     : Scale (units) of distances in the file
+                    : For simulations, this value would be 1.0 sigma
 
 # pdb2ndb.py
 
@@ -26,7 +27,8 @@ Other options:
                     : Default = C
 -loops {file}       : Text file that contains loop annotations
 -sigma {float}      : Value for the Variance of DNA Distribution
--scale {?}          : Scale of distances in the file
+-scale {string}     : Scale (units) of distances in the file
+                    : For simulations, this value would be 1.0 sigma
 
 # csv2ndb.py
 
@@ -41,7 +43,8 @@ Other options:
                     : Default = C
 -loops {file}       : Text file that contains loop annotations
 -sigma {float}      : Value for the Variance of DNA Distribution
--scale {?}          : Scale of distances in the file
+-scale {string}     : Scale (units) of distances in the file
+                    : For simulations, this value would be 1.0 sigma
 
 # sw2ndb.py
 
@@ -54,5 +57,6 @@ Other options:
                     : Default = C
 -loops {file}       : Text file that contains loop annotations
 -sigma {float}      : Value for the Variance of DNA Distribution
--scale {?}          : Scale of distances in the file
+-scale {string}     : Scale (units) of distances in the file
+                    : For simulations, this value would be 1.0 sigma
 
