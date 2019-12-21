@@ -1,5 +1,7 @@
-## NDB-Converters
+### NDB-Converters
  Python scripts to convert from and to .ndb file format
+
+## To *.ndb
 
 # gro2ndb.py
 
@@ -13,8 +15,6 @@ Other options:
 -chro {int}         : Chromosome number in the *.gro file to be converted
 -loops {file}       : Text file that contains loop annotations
 -sigma {float}      : Value for the Variance of DNA Distribution
--scale {string}     : Scale (units) of distances in the file
-                    : For simulations, this value would be 1.0 sigma
 
 # pdb2ndb.py
 
@@ -27,8 +27,7 @@ Other options:
                     : Default = C
 -loops {file}       : Text file that contains loop annotations
 -sigma {float}      : Value for the Variance of DNA Distribution
--scale {string}     : Scale (units) of distances in the file
-                    : For simulations, this value would be 1.0 sigma
+
 
 # csv2ndb.py
 
@@ -43,12 +42,11 @@ Other options:
                     : Default = C
 -loops {file}       : Text file that contains loop annotations
 -sigma {float}      : Value for the Variance of DNA Distribution
--scale {string}     : Scale (units) of distances in the file
-                    : For simulations, this value would be 1.0 sigma
 
-# sw2ndb.py
 
-Usage: sw2ndb.py -f file.sw -n name_NDB_file
+# spw2ndb.py
+
+Usage: spw2ndb.py -f file.spw -n name_NDB_file
 
 Other options:
 
@@ -57,6 +55,20 @@ Other options:
                     : Default = C
 -loops {file}       : Text file that contains loop annotations
 -sigma {float}      : Value for the Variance of DNA Distribution
--scale {string}     : Scale (units) of distances in the file
-                    : For simulations, this value would be 1.0 sigma
+
+## From *.ndb:
+
+# ndb2pdb.py
+
+Usage: ndb2pdb.py -f file.ndb -n name_PDB_file
+
+# ndb2spw.py
+
+Usage: ndb2spw.py -f file.ndb -n name_SPW_file
+
+Other options:
+
+-t {string}         : Value of field "name" at spw header
+
+# gro2spw.py 
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#coding: utf8 
+#coding: utf8
 
 __description__ = \
 """
@@ -10,7 +10,7 @@ __author__ = "Vinícius Contessoto / Matheus Mello"
 __date__   = "Nov/2019"
 
 ################################################################
-# 
+#
 # Trajectories file *.pdb to Nucleome Data Bank format .ndb
 #
 # usage:
@@ -22,9 +22,9 @@ __date__   = "Nov/2019"
 import time
 import argparse
 import numpy as np
-from   itertools     import islice
+from   itertools import islice
 
-parser = argparse.ArgumentParser(description='Chromatin Gromacs simulation result plot')
+parser = argparse.ArgumentParser(description='Converting from *.pdb to *.ndb file')
 parser.add_argument('-f', metavar='input-file-Grofile-frames',help='grofile with frames',type=argparse.FileType('rt'))
 parser.add_argument('-res', action='store', default=50000, dest='arg_res', help='Resolution for each simulation bead')
 parser.add_argument('-chroID', action='store', default='C', dest='arg_chroID', help='Chain ID')
@@ -42,7 +42,7 @@ try:
     print('Distance scale: {:}'.format(arguments.arg_scale))
 
 except IOError as msg:
-    parser.error(str(msg))                    
+    parser.error(str(msg))
 
 Main_chrom      = ['ChrA','ChrB','ChrU'] # Type A B and Unknow
 Chrom_types     = ['ZA','OA','FB','SB','TB','LB','UN']
@@ -61,10 +61,10 @@ title_string   = "{0:6s}  {1:2s}{2:80s}"
 author_string  = "{0:6s}  {1:2s}{2:79s}"
 expdata_string = "{0:6s}  {1:2s}{2:79s}"
 model_string   = "{0:6s}     {1:4d}"
-seqchr_string  = "{0:6s} {1:3d} {2:2s} {3:5d}  {4:69s}" 
-ter_string     = "{0:6s} {1:8d} {2:2s}        {3:2s}" 
+seqchr_string  = "{0:6s} {1:3d} {2:2s} {3:5d}  {4:69s}"
+ter_string     = "{0:6s} {1:8d} {2:2s}        {3:2s}"
 loops_string   = "{0:6s}{1:6d} {2:6d}"
-master_string  = "{0:6s} {1:8d} {2:6d} {3:10d} {4:>8s}"
+master_string  = "{0:6s} {1:8d} {2:6d} {3:6d} {4:10d}"   # MASTER BEADS TER LOOPS RES
 
 file_pdb   = arguments.f
 file_loops = arguments.loops
@@ -98,38 +98,43 @@ def chunk_list(lista, size):
 SEQCHROM = []
 bead     = []
 
-chain = 0
+chain = 1
 
 for line in file_pdb:
-  
+
     info = line[0:6]
 
     if 'ATOM' in info:
         if not 'PL' in line[12:16]:
-            
-            index = int(line[22:26].replace(" ", ""))  # Getting index number for 1st pdb field
+
+            # index = int(line[22:26].replace(" ", ""))  # Getting index number for 1st pdb field
+            index = int(line[6:11].replace(" ", ""))
 
             if index == 1:
-                chain += 1
                 SEQCHROM.append([])
                 bead.append(0)
-            
+
             try:
-                SEQCHROM[chain-1].append(str(Chrom_types_NDB[np.int(np.where(np.char.find(Chrom_types, str(line[12:16].replace(" ", ""))) == 0)[0][0])]))
+                SEQCHROM[chain-1].append(Chrom_types_NDB[Chrom_types.index(line[12:16].replace(" ", ""))])
             except:
                 SEQCHROM[chain-1].append('UN')
-            
+
             bead[chain-1] += 1
-    
-    if 'TER' in info:
+
+    elif 'TER   ' == info:
+        chain += 1
+        SEQCHROM.append([])
+        bead.append(0)
+
+    elif 'ENDMDL' in info or 'END   ' == info:
         break
 
 for i in range(chain):
 
   seq_chunk_23 = list(chunk_list(list(SEQCHROM[i]), 23))
-  
+
   for j in range(len(seq_chunk_23)):
-      
+
     seq_str = " ".join(seq_chunk_23[j])
     ndbf.write(seqchr_string.format('SEQCHR', j+1, chroID + str(i + 1), bead[i], seq_str))
     ndbf.write("\n")
@@ -139,33 +144,44 @@ for i in range(chain):
 file_pdb.seek(0)
 
 model = 1
-chain = 0
+chain = 1
 
-isAtom = False
+index_c = 0
+
+wroteMDL = False
+wroteEML = False
 
 for line in file_pdb:
-    
+
     info = line[0:6]
 
-    if 'ATOM' in info:
+    if 'MODEL ' == info:
+        ndbf.write(model_string.format('MODEL ', int(model)))
+        ndbf.write("\n")
+        chain = 1
+
+        wroteMDL = True
+
+    elif 'ATOM' in info:
         if not 'PL' in line[12:16]:
-            
-            index_c     = int(line[6:11].replace(" ", ""))
+
+            if not wroteMDL:
+                ndbf.write(model_string.format('MODEL ', int(model)))
+                ndbf.write("\n")
+                chain = 1
+
+                wroteMDL = True
 
             subtype_pdb = line[12:16].replace(" ", "")
-            
+
+            index_c += 1
+
             try:
-                subtype_ndb  = str(Chrom_types_NDB[np.int(np.where(np.char.find(Chrom_types, subtype_pdb) == 0)[0][0])])
+                subtype_ndb = Chrom_types_NDB[Chrom_types.index(subtype_pdb)]
             except:
                 subtype_ndb  = 'UN'
 
-            index = int(line[22:26].replace(" ", ""))  # Getting index number for 1st pdb field
-
-            if index == 1:
-                if chain == 0:
-                    ndbf.write(model_string.format('MODEL ', int(model)))
-                    ndbf.write("\n")
-                chain += 1
+            index = int(line[22:26].replace(" ", ""))
 
             X = np.float(line[30:38].replace(" ", ""))
             Y = np.float(line[38:46].replace(" ", ""))
@@ -173,25 +189,30 @@ for line in file_pdb:
 
             start = np.int((index-1) * res)+1
             end   = np.int( index * res )
-            
+
             ndbf.write(ndb_string.format('CHROM ', index_c, subtype_ndb, " ", chroID + str(chain), index, X, Y, Z, start, end, sigma)) # Aqui a gente escreve as coordenadas e os campos coloridos
             ndbf.write("\n")
-        
-        isAtom = True
-    
-    else:
-        if isAtom:
-            ndbf.write(ter_string.format('TER   ', index_c + 1, subtype_ndb, chroID + str(chain)))
-            ndbf.write("\n")
-            model += 1
-            chain = 0
-            
-            ndbf.write('ENDMDL\n')
-    
-        isAtom = False
 
+    elif 'TER   ' == info:
+        index_c += 1
 
-print("Last traj frame:", model-1)
+        subtype_pdb = line[12:16].replace(" ", "")
+
+        try:
+            subtype_ndb = Chrom_types_NDB[Chrom_types.index(subtype_pdb)]
+        except:
+            subtype_ndb  = 'UN'
+
+        ndbf.write(ter_string.format('TER   ', index_c, subtype_ndb, chroID + str(chain)))
+        ndbf.write("\n")
+        chain += 1
+
+    elif 'ENDMDL' == info:
+        ndbf.write('ENDMDL\n')
+        model += 1
+        wroteEML = True
+
+print("Last traj frame:", model)
 
 mloops=0
 if file_loops is not None:
@@ -206,7 +227,13 @@ if file_loops is not None:
 
     mloops += 1
 
-ndbf.write(master_string.format('MASTER', sum(bead), mloops, res, str(scale)))
+if not wroteEML:
+    ndbf.write('ENDMDL\n')
+    model += 1
+
+    wroteEML = True
+
+ndbf.write(master_string.format('MASTER', sum(bead), chain-1, mloops, res))
 ndbf.write("\n")
 ndbf.write('END')
 ndbf.write("\n")

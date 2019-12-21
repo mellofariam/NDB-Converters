@@ -11,7 +11,7 @@ __date__   = "Nov/2019"
 
 ################################################################
 # 
-# Gromacs trajectories file *.gro to Nucleome Data Bank format .ndb
+# Gromacs file *.gro to Nucleome Data Bank format .ndb
 #
 # usage:
 #  ./gro2ndb.py -f file.gro -n name_NDB_file
@@ -26,10 +26,10 @@ import numpy as np
 from   datetime  import date
 from   itertools import islice
 
-parser = argparse.ArgumentParser(description='Chromatin Gromacs simulation result plot')
+parser = argparse.ArgumentParser(description='Converting from *.gro to *.ndb file')
 parser.add_argument('-f', metavar='input-file-Grofile-frames',help='grofile with frames',type=argparse.FileType('rt'))
 parser.add_argument('-res', action='store', default=50000, dest='arg_res', help='Resolution for each simulation bead')
-parser.add_argument('-chro', action='store', dest='arg_chro', help='Chromosome number', required=True)
+parser.add_argument('-chro', nargs='+', action='store', dest='arg_chro', help='Chromosome number', required=False, type=int)
 parser.add_argument('-chroID', action='store', default='C', dest='arg_chroID', help='Chain ID')
 parser.add_argument('-n', action='store', default='chromatin', dest='arg_name',  help='Name of output file')
 parser.add_argument('-loops', metavar='input-file-Loops',help='Loops contact pair between i and j',type=argparse.FileType('rt'), required=False)
@@ -65,16 +65,20 @@ model_string   = "{0:6s}     {1:4d}"
 seqchr_string  = "{0:6s} {1:3d} {2:2s} {3:5d}  {4:69s}" 
 ter_string     = "{0:6s} {1:8d} {2:2s}        {3:2s}" 
 loops_string   = "{0:6s}{1:6d} {2:6d}"
-master_string  = "{0:6s} {1:8d} {2:6d} {3:10d} {4:>8s}"
+master_string  = "{0:6s} {1:8d} {2:6d} {3:6d} {4:10d}"   # MASTER BEADS TER LOOPS RES
 
 file_gro   = arguments.f
 file_loops = arguments.loops
 res        = np.int(arguments.arg_res)
-chro       = np.int(arguments.arg_chro)
 chroID     = np.str(arguments.arg_chroID)
 sigma      = np.float(arguments.arg_sigma)
 scale      = np.float(arguments.arg_scale)
 
+try:
+    chro   = arguments.arg_chro
+except:
+    pass
+    
 b_time     = time.time()
 
 # [ Getting beads number ]
@@ -133,7 +137,7 @@ for num, line in enumerate(file_gro):
                 SEQCHROM.append([])
                 bead.append(0)
 
-            SEQCHROM[chain-1].append(str(Chrom_types_NDB[np.int(np.where(np.char.find(Chrom_types, str(info[1])) == 0)[0][0])])) 
+            SEQCHROM[chain-1].append(Chrom_types_NDB[Chrom_types.index(str(info[1]))]) 
             bead[chain-1] += 1
 
 for i in range(chain):
@@ -143,7 +147,10 @@ for i in range(chain):
     for j in range(len(seq_chunk_23)):
         
         seq_str = " ".join(seq_chunk_23[j])
-        ndbf.write(seqchr_string.format('SEQCHR', j+1, chroID + str(i + 1), bead[i], seq_str))
+        try:
+            ndbf.write(seqchr_string.format('SEQCHR', j+1, chroID + str(chro[i]), bead[i], seq_str))
+        except:        
+            ndbf.write(seqchr_string.format('SEQCHR', j+1, chroID + str(i + 1), bead[i], seq_str))
         ndbf.write("\n")
 
 # [ Writing .ndb body ]
@@ -155,6 +162,8 @@ frame_size = all_beads + 3
 model = 1
 chain = 0
 
+index_c = 0
+
 for num, line in enumerate(file_gro):
 
     info = line.split()
@@ -163,33 +172,57 @@ for num, line in enumerate(file_gro):
         ndbf.write(model_string.format('MODEL ', model))
         ndbf.write("\n")
 
+        index_c = 0
+        numTer  = 0
+
     if "ChrA" in info[0] or "ChrB" in info[0] or "ChrU" in info[0]:
         
         temp  = re.findall(r'\d+', info[0])
         index = [ int(x) for x in temp ][0]  # Getting index number for 1st gro field
 
         if index == 1:
+
+            if chain != 0:
+                index_c    += 1
+                try:
+                    ndbf.write(ter_string.format('TER   ', index_c, subtype_ndb, chroID + str(chro[chain-1])))
+                except:
+                    ndbf.write(ter_string.format('TER   ', index_c, subtype_ndb, chroID + str(chain)))
+                ndbf.write("\n")
+
+                numTer += 1
+
             chain += 1
 
         X = np.float(info[3])
         Y = np.float(info[4])
         Z = np.float(info[5])
 
-        index_c     = np.int(info[2])
+        index_c    += 1
         subtype_gro = str(info[1])
 
-        subtype_ndb = str(Chrom_types_NDB[np.int(np.where(np.char.find(Chrom_types, subtype_gro) == 0)[0][0])])
+        subtype_ndb = Chrom_types_NDB[Chrom_types.index(str(info[1]))]
         
         start = np.int((index-1) * res)+1
         end   = np.int( index * res )
         
-        ndbf.write(ndb_string.format('CHROM ', index_c, subtype_ndb, " ", chroID + str(chain), index, X, Y, Z, start, end, sigma)) # Aqui a gente escreve as coordenadas e os campos coloridos
+        try:
+            ndbf.write(ndb_string.format('CHROM ', index_c, subtype_ndb, " ", chroID + str(chro[chain-1]), index, X, Y, Z, start, end, sigma)) 
+        except:
+            ndbf.write(ndb_string.format('CHROM ', index_c, subtype_ndb, " ", chroID + str(chain), index, X, Y, Z, start, end, sigma)) 
         ndbf.write("\n")
 
-        if index_c == beads:
+        if np.int(info[2]) == beads:
+            index_c    += 1
 
-            ndbf.write(ter_string.format('TER   ', index_c + 1, subtype_ndb, chroID + str(chain)))
+            try:
+                ndbf.write(ter_string.format('TER   ', index_c, subtype_ndb, chroID + str(chro[chain-1])))
+            except:
+                ndbf.write(ter_string.format('TER   ', index_c, subtype_ndb, chroID + str(chain)))
             ndbf.write("\n")
+
+            numTer += 1
+
             model += 1
             chain = 0
             
@@ -220,7 +253,7 @@ if file_loops is not None:
 
         mloops += 1
 
-ndbf.write(master_string.format('MASTER', beads, mloops, res, str(scale)))
+ndbf.write(master_string.format('MASTER', beads, numTer, mloops, res))
 ndbf.write("\n")
 ndbf.write('END')
 ndbf.write("\n")

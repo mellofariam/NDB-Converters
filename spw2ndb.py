@@ -3,7 +3,7 @@
 
 __description__ = \
 """
-Converting *.sw to Nucleome Data Bank format .ndb
+Converting *.spw to Nucleome Data Bank format .ndb
 """
 
 __author__ = "Vinícius Contessoto / Matheus Mello"
@@ -11,10 +11,10 @@ __date__   = "Nov/2019"
 
 ################################################################
 # 
-# SpaceWalk trajectories file *.sw to Nucleome Data Bank format .ndb
+# SpaceWalk file *.spw to Nucleome Data Bank format .ndb
 #
 # usage:
-#  ./sw2ndb.py -f file.sw -n name_NDB_file
+#  ./spw2ndb.py -f file.spw -n name_NDB_file
 #
 ################################################################
 
@@ -25,25 +25,20 @@ import numpy as np
 from   datetime  import date
 from   itertools import islice
 
-parser = argparse.ArgumentParser(description='Chromatin Gromacs simulation result plot')
-parser.add_argument('-f', metavar='input-file-swFile-frames',help='sw file with frames',type=argparse.FileType('rt'))
+parser = argparse.ArgumentParser(description='Converting from *.spw to *.ndb file')
+parser.add_argument('-f', metavar='input-file-spwFile-frames',help='spw file with frames',type=argparse.FileType('rt'))
 parser.add_argument('-res', action='store', default=50000, dest='arg_res', help='Resolution for each simulation bead')
 parser.add_argument('-chroID', action='store', default='C', dest='arg_chroID', help='Chain ID')
 parser.add_argument('-n', action='store', default='traj', dest='arg_name',  help='Name of output file')
 parser.add_argument('-loops', metavar='input-file-Loops',help='Loops contact pair between i and j',type=argparse.FileType('rt'), required=False)
 parser.add_argument('-sigma', action='store', default=0.000, dest='arg_sigma', help='Distance fluctuation')
-parser.add_argument('-scale', action='store', default=1.000, dest='arg_scale', help='Distance scale')
 
 try:
     arguments = parser.parse_args()
     print('################################################')
     print('Chosen file: {:}'.format(arguments.f.name))
     print('Resolution: {:}'.format(arguments.arg_res))
-    print('Format: {:}'.format(arguments.arg_format))
-    print('Cell name: {:}'.format(arguments.arg_cellname))
-    print('Genome Reference: {:}'.format(arguments.arg_genref))
     print('Chrom ID: {:}'.format(arguments.arg_chroID))
-    print('Distance scale: {:}'.format(arguments.arg_scale))
 
 except IOError as msg:
     parser.error(str(msg))                    
@@ -68,14 +63,13 @@ model_string   = "{0:6s}     {1:4d}"
 seqchr_string  = "{0:6s} {1:3d} {2:2s} {3:5d}  {4:69s}" 
 ter_string     = "{0:6s} {1:8d} {2:2s}        {3:2s}" 
 loops_string   = "{0:6s}{1:6d} {2:6d}"
-master_string  = "{0:6s} {1:8d} {2:6d} {3:10d} {4:>8s}"
+master_string  = "{0:6s} {1:8d} {2:6d} {3:6d} {4:10d}"   # MASTER BEADS TER LOOPS RES
 
-file_sw    = arguments.f
+file_spw   = arguments.f
 file_loops = arguments.loops
 res        = np.int(arguments.arg_res)
 chroID     = np.str(arguments.arg_chroID)
 sigma      = np.float(arguments.arg_sigma)
-scale      = np.float(arguments.arg_scale)
 
 ndbf       = open(arguments.arg_name+'.ndb', "w+")
 
@@ -83,7 +77,7 @@ ndbf       = open(arguments.arg_name+'.ndb', "w+")
 
 today = date.today()
 
-ndbf.write(header_string.format('HEADER','File converted from .sw file',today.strftime("%b %d %y"),''))
+ndbf.write(header_string.format('HEADER','File converted from .spw file',today.strftime("%b %d %y"),''))
 ndbf.write("\n")
 
 # [ Creating SEQCHR ]
@@ -99,14 +93,14 @@ chain = 0
 
 chro_nr = []
 
-for line in file_sw:
+for line in file_spw:
   
     info = line.split()
     
     if 'chr' in info[0] and info[0] != 'chromosome':
         
         temp = re.findall(r'\d+', info[0])
-        chro = [ int(x) for x in temp ][0]  # Getting chro number from 1st sw field
+        chro = [ int(x) for x in temp ][0]  # Getting chro number from 1st spw field
         
         if not chro in chro_nr:
             chro_nr.append(chro)
@@ -132,7 +126,7 @@ for i in range(chain):
 
 # [ Writing ndb file body ]
 
-file_sw.seek(0)
+file_spw.seek(0)
 
 chain   = 0
 index_c = 0
@@ -140,7 +134,7 @@ model   = 0
 
 chro_nr = []
 
-for line in file_sw:
+for line in file_spw:
     
     info = line.split()
 
@@ -150,12 +144,19 @@ for line in file_sw:
         ndbf.write(model_string.format('MODEL ', model))
         ndbf.write("\n")
 
+        chain = 0
+
     elif 'chr' in info[0] and info[0] != 'chromosome':
 
         temp = re.findall(r'\d+', info[0])
-        chro = [ int(x) for x in temp ][0]  # Getting chro number from 1st sw field
+        chro = [ int(x) for x in temp ][0]  # Getting chro number from 1st spw field
 
         if not chro in chro_nr:
+            if chain != 0:
+                index_c += 1
+                ndbf.write(ter_string.format('TER   ', index_c, subtype_ndb, chroID + str(chro_nr[len(chro_nr)-1])))
+                ndbf.write("\n")
+
             chro_nr.append(chro)
             chain += 1
             index  = 0
@@ -177,11 +178,12 @@ for line in file_sw:
         ndbf.write("\n")
 
         if index_c == sum(bead):
-            ndbf.write(ter_string.format('TER   ', index_c + 1, subtype_ndb, chroID + str(chro)))
+            index_c += 1
+
+            ndbf.write(ter_string.format('TER   ', index_c, subtype_ndb, chroID + str(chro)))
             ndbf.write("\n")
 
             index_c = 0
-            chain   = 0
             chro_nr = []
 
             ndbf.write('ENDMDL\n')
@@ -203,7 +205,7 @@ if file_loops is not None:
 
     mloops += 1
 
-ndbf.write(master_string.format('MASTER', sum(bead), mloops, res, str(scale)))
+ndbf.write(master_string.format('MASTER', sum(bead), chain, mloops, res))
 ndbf.write("\n")
 ndbf.write('END')
 ndbf.write("\n")
