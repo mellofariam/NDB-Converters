@@ -174,6 +174,7 @@ for line in file_csv:
         if int(info[1]) == 1:
             ndbf.write(model_string.format('MODEL ', int(model)))
             ndbf.write("\n")
+            numTer = 0
         
         index_c = index = int(info[1])
 
