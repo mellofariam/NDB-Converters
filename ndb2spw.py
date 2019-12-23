@@ -27,6 +27,8 @@ parser = argparse.ArgumentParser(description='Converting *.ndb to *.spw format')
 parser.add_argument('-f', metavar='input-file-Grofile-frames',help='ndb file with frames',type=argparse.FileType('rt'))
 parser.add_argument('-n', action='store', default='chromatin', dest='arg_name',  help='Name of output file')
 parser.add_argument('-t', action='store', dest='header_name',  help='Value of name field at spw header')
+parser.add_argument('-c', action='store', dest='arg_chro',  help='Chromosome number')
+parser.add_argument('-g', action='store', dest='genome',  help='Value of name field at spw header', type=str)
 
 try:
     arguments = parser.parse_args()
@@ -56,6 +58,8 @@ file_ndb = arguments.f
 name     = arguments.arg_name
 
 hname    = arguments.header_name
+Chro     = arguments.arg_chro
+gen      = arguments.genome
 
 spwf     = open(name + '.spw', "w+")
 
@@ -66,22 +70,32 @@ loop = 0
 spwf.write('##format=sw1 ')
 
 try:
-    spwf.write('name={:}'.format(hname))
+    spwf.write('name={:} '.format(hname))
 except:
     spwf.write('name={:} '.format(name))
 
 first = True
+asmbly = False
+
 for line in file_ndb:
     
     entry = line[0:6]
 
     info = line.split()
 
-    if 'ASMBLY' in entry:
-        spwf.write('genome=' + line[6:])
+    if 'ASMBLY' in entry and gen is None:
+        spwf.write('genome=' + line[6:].replace(' ','').replace('\n', ''))
+        asmbly = True
 
     if 'MODEL' in entry:
         if first:
+
+            if not asmbly:
+                if gen is None:
+                    print('Assembly information not available')
+                else:
+                    spwf.write('genome=' + gen)
+
             spwf.write('\nchromosome	start	end	x	y	z\n')
             first = False
         spwf.write('trace {:}\n'.format(int(line[6:].replace(' ',''))-1))
@@ -91,7 +105,11 @@ for line in file_ndb:
         temp = re.findall(r'\d+', info[3])
         chro = [ int(x) for x in temp ][0]  # Getting chro number from 1st spw field
 
-        spwf.write('chr{0:} {1:} {2:} {3:} {4:} {5:}\n'.format(chro, info[8], info[9], info[5], info[6], info[7]))
+        try:
+            spwf.write('chr{0:} {1:} {2:} {3:} {4:} {5:}\n'.format(Chro, info[8], info[9], info[5], info[6], info[7]))
+        except:
+            spwf.write('chr{0:} {1:} {2:} {3:} {4:} {5:}\n'.format(chro, info[8], info[9], info[5], info[6], info[7]))
+            
 
     # [ Loops file ]
 
@@ -102,7 +120,6 @@ for line in file_ndb:
         loops.write('{0:d} {1:d}\n'.format(int(info[1]), int(info[2])))
         loop += 1
         
-spwf.write('END\n')
 spwf.close()
 
 print('Finished!')

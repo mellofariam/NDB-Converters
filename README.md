@@ -69,6 +69,5 @@ Usage: ndb2spw.py -f file.ndb -n name_SPW_file
 Other options:
 
 -t {string}         : Value of field "name" at spw header
-
-### gro2spw.py 
-
+-g {string}         : Assembly of genome
+-c {string}         : Number of chromosome
