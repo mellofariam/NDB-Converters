@@ -154,7 +154,7 @@ seq_chunk_23 = list(chunk_list(list(SEQCHROM), 23))
 for j in range(len(seq_chunk_23)):
     
     seq_str = " ".join(seq_chunk_23[j])
-    ndbf.write(seqchr_string.format('SEQCHR', j+1, chroID + str(chro) + 'A', beads, seq_str))
+    ndbf.write(seqchr_string.format('SEQCHR', j+1, chroID + str(chro), beads, seq_str))
     ndbf.write("\n")
 
 
@@ -184,11 +184,11 @@ for line in file_csv:
         start = 18000000 + (index - 1) * res
         end   = 18000000 + (  index  ) * res
 
-        ndbf.write(ndb_string.format('CHROM ', index_c, 'UN', " ", chroID + str(chro) + 'A', index, X, Y, Z, start, end, sigma)) # Aqui a gente escreve as coordenadas e os campos coloridos
+        ndbf.write(ndb_string.format('CHROM ', index_c, 'UN', " ", chroID + str(chro), index, X, Y, Z, start, end, sigma)) # Aqui a gente escreve as coordenadas e os campos coloridos
         ndbf.write("\n")
 
         if int(info[1]) == beads:
-            ndbf.write(ter_string.format('TER   ', index_c + 1, 'UN', chroID + str(chro) + 'A'))
+            ndbf.write(ter_string.format('TER   ', index_c + 1, 'UN', chroID + str(chro)))
             ndbf.write("\n")
             numTer += 1
             
