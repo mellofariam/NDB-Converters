@@ -3,7 +3,7 @@
 
 __description__ = \
 """
-Converting *.ndb to *.pdb format
+Converting *.ndb to *.cndb format
 """
 
 __author__ = "Vinícius Contessoto / Matheus Mello / Antonio B. Oliveira Junior"
@@ -14,7 +14,7 @@ __date__   = "Sep/2020"
 # Trajectories file *.ndb to Compacted Nucleome Data Bank format .cndb
 #
 # usage:
-#  ./ndb2pdb.py -f file.ndb -n name_PDB_file
+#  ./ndb2cndb.py -f file.ndb -n name_CNDB_file
 #
 ################################################################
 

@@ -56,6 +56,10 @@ Other options:
 -loops {file}       : Text file that contains loop annotations
 -sigma {float}      : Value for the Variance of DNA Distribution
 
+### cndb2ndb.py
+
+Usage: cndb2ndb.py -f file.cndb -n name_NDB_file
+
 ## From *.ndb:
 
 ### ndb2pdb.py
@@ -71,3 +75,7 @@ Other options:
 -t {string}         : Value of field "name" at spw header
 -g {string}         : Assembly of genome
 -c {string}         : Number of chromosome
+
+### ndb2cndb.py
+
+ndb2cndb.py -f file.ndb -n name_CNDB_file
