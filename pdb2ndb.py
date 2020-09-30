@@ -63,7 +63,7 @@ expdata_string = "{0:6s}  {1:2s}{2:79s}"
 model_string   = "{0:6s}     {1:4d}"
 seqchr_string  = "{0:6s} {1:3d} {2:2s} {3:5d}  {4:69s}"
 ter_string     = "{0:6s} {1:8d} {2:2s}        {3:2s}"
-loops_string   = "{0:6s}{1:6d} {2:6d}"
+loops_string   = "{0:6s} {1:8d} {2:8d}"
 master_string  = "{0:6s} {1:8d} {2:6d} {3:6d} {4:10d}"   # MASTER BEADS TER LOOPS RES
 
 file_pdb   = arguments.f
