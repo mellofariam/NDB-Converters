@@ -71,10 +71,10 @@ master_string  = "{0:6s} {1:8d} {2:6d} {3:6d} {4:10d}"   # MASTER BEADS TER LOOP
 
 file_csv   = arguments.f
 file_loops = arguments.loops
-res        = np.int(arguments.arg_res)
-chro       = np.int(arguments.arg_chro)
-chroID     = np.str(arguments.arg_chroID)
-sigma      = np.float(arguments.arg_sigma)
+res        = int(arguments.arg_res)
+chro       = int(arguments.arg_chro)
+chroID     = str(arguments.arg_chroID)
+sigma      = float(arguments.arg_sigma)
 
 ndbf       = open(arguments.arg_name+'.ndb', "w+")
 
@@ -178,9 +178,9 @@ for line in file_csv:
         
         index_c = index = int(info[1])
 
-        Z = np.float(info[2])
-        X = np.float(info[3])
-        Y = np.float(info[4])
+        Z = float(info[2])
+        X = float(info[3])
+        Y = float(info[4])
 
         start = 18000000 + (index - 1) * res
         end   = 18000000 + (  index  ) * res
@@ -203,8 +203,8 @@ if file_loops is not None:
 
     loop = line.split()
 
-    i = np.int(loop[0])
-    j = np.int(loop[1])
+    i = int(loop[0])
+    j = int(loop[1])
     ndbf.write(loops_string.format('LOOPS ', i, j))
     ndbf.write("\n")
 

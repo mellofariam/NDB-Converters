@@ -103,10 +103,10 @@ master_string = "{0:6s} {1:8d} {2:6d} {3:6d} {4:10d}"  # MASTER BEADS TER LOOPS 
 
 filename = arguments.arg_fname
 file_loops = arguments.loops
-res = np.int(arguments.arg_res)
-chroID = np.str(arguments.arg_chroID)
-sigma = np.float(arguments.arg_sigma)
-scale = np.float(arguments.arg_scale)
+res = int(arguments.arg_res)
+chroID = str(arguments.arg_chroID)
+sigma = float(arguments.arg_sigma)
+scale = float(arguments.arg_scale)
 
 ndbf = open(arguments.arg_name + ".ndb", "w+")
 
@@ -173,8 +173,8 @@ for mdl in range(1, totalModel, 1):
                 line[0],
                 line[1],
                 line[2],
-                np.int((i) * 50000) + 1,
-                np.int(i * 50000 + 50000),
+                int((i) * 50000) + 1,
+                int(i * 50000 + 50000),
                 0,
             )
         )  

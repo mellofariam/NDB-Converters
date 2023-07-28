@@ -69,10 +69,10 @@ master_string  = "{0:6s} {1:8d} {2:6d} {3:6d} {4:10d}"   # MASTER BEADS TER LOOP
 
 file_gro   = arguments.f
 file_loops = arguments.loops
-res        = np.int(arguments.arg_res)
-chroID     = np.str(arguments.arg_chroID)
-sigma      = np.float(arguments.arg_sigma)
-scale      = np.float(arguments.arg_scale)
+res        = int(arguments.arg_res)
+chroID     = str(arguments.arg_chroID)
+sigma      = float(arguments.arg_sigma)
+scale      = float(arguments.arg_scale)
 
 try:
     chro   = arguments.arg_chro
@@ -194,17 +194,17 @@ for num, line in enumerate(file_gro):
 
             chain += 1
 
-        X = np.float(info[3])
-        Y = np.float(info[4])
-        Z = np.float(info[5])
+        X = float(info[3])
+        Y = float(info[4])
+        Z = float(info[5])
 
         index_c    += 1
         subtype_gro = str(info[1])
 
         subtype_ndb = Chrom_types_NDB[Chrom_types.index(str(info[1]))]
         
-        start = np.int((index-1) * res)+1
-        end   = np.int( index * res )
+        start = int((index-1) * res)+1
+        end   = int( index * res )
         
         try:
             ndbf.write(ndb_string.format('CHROM ', index_c, subtype_ndb, " ", chroID + str(chro[chain-1]), index, X, Y, Z, start, end, sigma)) 
@@ -212,7 +212,7 @@ for num, line in enumerate(file_gro):
             ndbf.write(ndb_string.format('CHROM ', index_c, subtype_ndb, " ", chroID + str(chain), index, X, Y, Z, start, end, sigma)) 
         ndbf.write("\n")
 
-        if np.int(info[2]) == beads:
+        if int(info[2]) == beads:
             index_c    += 1
 
             try:
@@ -246,8 +246,8 @@ if file_loops is not None:
 
         loop = line.split()
 
-        i = np.int(loop[0])
-        j = np.int(loop[1])
+        i = int(loop[0])
+        j = int(loop[1])
         ndbf.write(loops_string.format('LOOPS ', i, j))
         ndbf.write("\n")
 
