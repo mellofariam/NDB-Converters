@@ -113,7 +113,11 @@ ndbf = open(arguments.arg_name + ".ndb", "w+")
 mode = "r"
 cndbf = h5py.File(filename, mode)
 
-type_list = list(cndbf["types"].asstr())
+type_list = list(cndbf["types"])
+
+if isinstance(type_list[0], (int, np.int32, np.int64)):
+    type_list = [Chrom_types_NDB[i] for i in type_list]
+
 
 ### [ HEADER ]
 ndbf.write(
